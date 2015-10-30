@@ -1,0 +1,1 @@
+Get-Datastore | Set-Datastore -StorageIOControlEnabled:$true -Confirm:$false -RunAsync
