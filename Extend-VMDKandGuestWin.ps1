@@ -64,13 +64,22 @@ $guestUser = Read-Host "Put administrative creds (local administrator)"
 $GuestPassword = Read-Host "Put Administrative password"
 $GuestPassword = ConvertTo-SecureString $GuestPassword -AsplainText -Force
 
-write-output $guestUser $GuestPassword $DiskSize $volume
-write-output "echo rescan > C:\diskpart.txt && ECHO SELECT Volume $volume >> C:\DiskPart.txt && ECHO EXTEND >> C:\DiskPart.txt && ECHO EXIT >> C:\DiskPart.txt && DiskPart.exe /s C:\DiskPart.txt && DEL C:\DiskPart.txt /Q"
+Write-Warning "You are going to change a VM, please review the configuration before commiting:"
+Write-Warning "VM - $target"
+Write-Warning "Hard Disk - $disk"
+Write-Warning "New Size - $DiskSize"
+Write-Warning "Guest Volume - $volume"
+$confirmation = Read-Host "Are you sure you want to proceed?"
 
+
+if ($confirmation -eq 'y') {
 get-HardDisk -vm $target | where { $_.Name -eq $disk} | Set-HardDisk -CapacityGB $DiskSize -Confirm:$false
-#get-HardDisk -vm $target | where { $_.Name -eq $disk} | Set-HardDisk -CapacityGB $DiskSize -Confirm:$false
 Invoke-VMScript -vm $target -ScriptText "echo rescan > C:\diskpart.txt && ECHO SELECT Volume $volume >> C:\DiskPart.txt && ECHO EXTEND >> C:\DiskPart.txt && ECHO EXIT >> C:\DiskPart.txt && DiskPart.exe /s C:\DiskPart.txt && DEL C:\DiskPart.txt /Q" -ScriptType BAT -GuestUser $GuestUser -GuestPassword $GuestPassword
+}
 
+else {
+    Write-Warning "Operation Aborted!"
+}
 
 
 Disconnect-viserver -confirm:$false
